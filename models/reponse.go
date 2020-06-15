@@ -1,0 +1,41 @@
+package models
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+//Response represent a standar response
+type Response struct {
+	Status   int         `json:"status"`
+	Menssage string      `json:"menssage"`
+	Data     interface{} `json:"data"`
+	writer   http.ResponseWriter
+}
+
+func CreateDefaultResponse(w http.ResponseWriter) Response {
+	return Response{Status: http.StatusOK, Menssage: "Susseful", writer: w}
+}
+
+func SendNotFound(w http.ResponseWriter) {
+	response := CreateDefaultResponse(w)
+	response.NotFound()
+	response.Send()
+}
+func (this *Response) NotFound() {
+	this.Status = http.StatusNotFound
+	this.Menssage = "Resource not found!!"
+}
+func SendData(w http.ResponseWriter, data interface{}) {
+	response := CreateDefaultResponse(w)
+	response.Data = data
+	response.Send()
+}
+func (this *Response) Send() {
+	this.writer.Header().Set("content-type", "application/json")
+	this.writer.WriteHeader(this.Status)
+
+	output, _ := json.Marshal(&this)
+	fmt.Fprintf(this.writer, string(output))
+}
